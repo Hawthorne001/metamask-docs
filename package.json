@@ -28,7 +28,7 @@
     "@metamask/docusaurus-openrpc": "^0.3.1",
     "clsx": "^1.2.1",
     "docusaurus-plugin-segment": "^1.0.4",
-    "docusaurus-plugin-typedoc": "1.0.0-next.17",
+    "docusaurus-plugin-typedoc": "1.0.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "prettier": "^3.0.0",
     "prism-react-renderer": "^1.3.5",
