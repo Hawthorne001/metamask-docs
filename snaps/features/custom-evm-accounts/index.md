@@ -1,8 +1,6 @@
 ---
 description: Connect to custom EVM accounts using the Keyring API.
-sidebar_position: 4
-sidebar_custom_props:
-  flask_only: true
+sidebar_position: 2
 tags:
   - Keyring API
 ---
@@ -11,10 +9,11 @@ tags:
 
 The Keyring API integrates custom EVM accounts inside MetaMask.
 You can use the Keyring API to display custom accounts, such as multi-party computation (MPC)
-accounts, alongside regular MetaMask accounts in the user interface:
+accounts and [ERC-4337 accounts](#account-abstraction-erc-4337), alongside regular MetaMask accounts
+in the user interface:
 
 <p align="center">
-<img src={require('../../assets/keyring/accounts-ui.png').default} alt="Account management Snap accounts in Metamask UI" width="360" style={{border: '1px solid gray'}} />
+<img src={require('../../assets/keyring/accounts-ui.png').default} alt="Account management Snap accounts in MetaMask UI" width="360" style={{border: '1px solid #DCDCDC'}} />
 </p>
 
 To use the Keyring API, you first [implement the API in an account management Snap](create-account-snap.md)
@@ -22,15 +21,13 @@ To use the Keyring API, you first [implement the API in an account management Sn
 You can then [call Keyring API methods from a companion dapp](create-companion-dapp.md)
 to enable users to create and interact with the custom accounts.
 
-:::flaskOnly
-:::
-
 :::tip see also
+
 - [Create an account management Snap](create-account-snap.md)
 - [Create an account management companion dapp](create-companion-dapp.md)
 - [Account management Snap security guidelines](security.md)
 - [Keyring API reference](../../reference/keyring-api/index.md)
-:::
+  :::
 
 ## System context diagram
 
@@ -143,7 +140,7 @@ Site -->>- User: Done
 ```
 
 The companion dapp presents a user interface allowing the user to configure their custom account.
-The dapp creates an account using [`keyring_createAccount`](../../reference/keyring-api/classes/KeyringSnapRpcClient.md#createaccount).
+The dapp creates an account using [`keyring_createAccount`](../../reference/keyring-api/account-management/index.md#keyring_createaccount).
 
 The Snap keeps track of the accounts that it creates using [`snap_manageState`](../../reference/snaps-api.md#snap_managestate).
 Once the Snap has created an account, it notifies MetaMask using
@@ -197,15 +194,14 @@ MetaMask -->>- Dapp: result
 Dapp -->>- User: Done
 ```
 
-The flow starts when a user or dapp initiates a [sign request](#supported-signing-methods).
+The flow starts when a user or dapp initiates a sign request.
 At that point, MetaMask detects that this interaction is requested for an account controlled by the
 account management Snap.
 
 After the user approves the transaction in MetaMask, MetaMask calls
-[`keyring_submitRequest`](../../reference/keyring-api/type-aliases/Keyring.md#submitrequest), which
-receives the original RPC request and returns a
-[`SubmitRequestResponse`](../../reference/keyring-api/variables/SubmitRequestResponseStruct.md)
-with `pending` set to `false`, and `result` set to the requested signature.
+[`keyring_submitRequest`](../../reference/keyring-api/account-management/index.md#keyring_submitrequest),
+which receives the original RPC request and returns a response with `pending` set to `false`, and
+`result` set to the requested signature.
 
 ### Asynchronous transaction flow
 
@@ -261,8 +257,9 @@ Dapp -->>- User: Done
 ```
 
 The flow starts the same way as the [synchronous flow](#synchronous-transaction-flow): a user or
-dapp initiates a [sign request](#supported-signing-methods).
-After approval, MetaMask calls [`keyring_submitRequest`](../../reference/keyring-api/type-aliases/Keyring.md#submitrequest).
+dapp initiates a sign request.
+After approval, MetaMask calls
+[`keyring_submitRequest`](../../reference/keyring-api/account-management/index.md#keyring_submitrequest).
 
 Since the Snap doesn't answer the request directly, it stores the pending request in its internal
 state using [`snap_manageState`](../../reference/snaps-api.md#snap_managestate).
@@ -272,23 +269,96 @@ This response can optionally contain a redirect URL that MetaMask will open in a
 the user to interact with the Snap companion dapp.
 
 The companion dapp gets the Snap's pending request using
-[`keyring_getRequest`](../../reference/keyring-api/classes/KeyringSnapRpcClient.md#getrequest).
+[`keyring_getRequest`](../../reference/keyring-api/account-management/index.md#keyring_getrequest).
 It resolves the request using
-[`keyring_approveRequest`](../../reference/keyring-api/classes/KeyringSnapRpcClient.md#approverequest),
+[`keyring_approveRequest`](../../reference/keyring-api/account-management/index.md#keyring_approverequest),
 and the Snap resolves the request using [`snap_manageAccounts`](../../reference/snaps-api.md#snap_manageaccounts),
 notifying MetaMask of the result.
 
-## Supported signing methods
+## EOA methods
 
-An account management Snap can implement support for handling the [`personal_sign`](/wallet/reference/personal_sign),
-[`eth_signTypedData_v4`](/wallet/reference/eth_signtypeddata_v4), and
-[`eth_signTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_signtransaction)
-Ethereum signing methods.
+An account management Snap can implement the following methods to support dapp requests from
+externally owned accounts (EOAs):
 
-The Snap can also implement support for [deprecated signing
-methods](/wallet/concepts/signing-methods/#deprecated-signing-methods) that some dapps still
-might use.
+- [`personal_sign`](../../reference/keyring-api/chain-methods.md#personal_sign)
+- [`eth_signTypedData_v4`](../../reference/keyring-api/chain-methods.md#eth_signtypeddata_v4)
+- [`eth_signTransaction`](../../reference/keyring-api/chain-methods.md#eth_signtransaction)
+- [Deprecated signing methods](/wallet/concepts/signing-methods/#deprecated-signing-methods)
 
-## Example
+## Account abstraction (ERC-4337)
 
-See the [example account management Snap source code](https://github.com/MetaMask/snap-simple-keyring) for more information.
+:::flaskOnly
+:::
+
+Account abstraction, specified by [EIP-4337](https://eips.ethereum.org/EIPS/eip-4337), introduces
+_user operations_ and enables users to manage smart contract accounts containing arbitrary
+verification logic.
+Users can use these ERC-4337 accounts instead of externally owned accounts as primary accounts.
+
+An account management Snap can implement the following methods to support dapp requests from
+ERC-4337 accounts:
+
+- [`eth_prepareUserOperation`](../../reference/keyring-api/chain-methods.md#eth_prepareuseroperation)
+- [`eth_patchUserOperation`](../../reference/keyring-api/chain-methods.md#eth_patchuseroperation)
+- [`eth_signUserOperation`](../../reference/keyring-api/chain-methods.md#eth_signuseroperation)
+
+The user operation signing flow in an ERC-4337 compatible account Snap looks like the following:
+
+```mermaid
+%%{
+  init: {
+    'sequence': {
+      'actorMargin': 60,
+      'width': 300
+    }
+  }
+}%%
+
+sequenceDiagram
+autonumber
+
+participant Dapp
+participant MetaMask
+participant Snap
+
+Dapp ->>+ MetaMask: Transaction intents
+note over MetaMask: Currently, only one transaction per userOp is supported
+MetaMask ->>+ Snap: eth_prepareUserOperation(transaction intents)
+Snap -->>- MetaMask: userOp details
+MetaMask ->> MetaMask: Check if account is already deployed
+
+alt The account is already deployed
+MetaMask ->> MetaMask: Remove the initCode if set
+else The account is not deployed and the initCode is not present
+MetaMask ->> Dapp: Throw an error (without the exact reason)
+end
+
+alt The gas isn't set
+MetaMask ->> MetaMask: Estimate and set gas values
+end
+
+MetaMask ->> MetaMask: Estimate and set gas fees
+MetaMask ->>+ Snap: eth_patchUserOperation(userOp object)
+Snap -->>- MetaMask: Partial userOp object
+MetaMask ->> MetaMask: Update paymasterAndData and remove dummy signature
+MetaMask ->>+ Snap: eth_signUserOperation(userOp object, entry point)
+Snap -->>- MetaMask: Signature
+MetaMask ->> MetaMask: Update userOp's signature
+
+MetaMask ->> MetaMask: Submit userOp to bundler and wait for transaction hash
+MetaMask -->>- Dapp: Transaction hash
+```
+
+See the [ERC-4337 methods](../../reference/keyring-api/chain-methods.md#erc-4337-methods) for more
+information about their parameters and response details.
+
+## Examples
+
+See the following example account management Snap implementations:
+
+- [Simple Account Snap](https://github.com/MetaMask/snap-simple-keyring)
+- [Simple Account Abstraction Snap](https://github.com/MetaMask/snap-account-abstraction-keyring/tree/main) (ERC-4337)
+- [Biconomy Smart Account Snap](https://github.com/bcnmy/smart-account-keyring-template) (ERC-4337)
+- [Silent Shard Snap](https://github.com/silence-laboratories/silent-shard-snap)
+- [Safeheron MPC Snap](https://github.com/Safeheron/multi-mpc-snap-monorepo)
+- [Capsule Keyring Snap](https://github.com/capsule-org/mm-snap-keyring)

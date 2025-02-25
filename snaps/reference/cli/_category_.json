@@ -1,0 +1,8 @@
+{
+  "label": "Snaps command line",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "slug": "reference/cli"
+  }
+}

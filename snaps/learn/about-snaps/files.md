@@ -3,6 +3,9 @@ description: Learn about the Snap project files.
 sidebar_position: 2
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Snaps files
 
 If you look at the directory structure of the Snaps monorepo project generated in the
@@ -42,7 +45,7 @@ To get MetaMask to execute your Snap, you must have a valid manifest file named 
 located in your package root directory.
 The manifest file of `Hello World` would look something like this:
 
-```json
+```json title="snap.manifest.json"
 {
   "version": "1.0.0",
   "proposedName": "Hello World",
@@ -72,17 +75,6 @@ The manifest tells MetaMask important information about your Snap, such as where
 reproduce the `source.shasum` value), and what
 [permissions the Snap requests](../../how-to/request-permissions.md) (using `initialPermissions`).
 
-:::note
-Currently, Snaps can only be
-[published to the official npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry),
-and the manifest must also match the corresponding fields of the `package.json` file.
-In the future, developers will be able to distribute Snaps in different ways, and the manifest will
-expand to support different publishing solutions.
-
-The [Snaps publishing specification](https://github.com/MetaMask/SIPs/blob/main/SIPS/sip-9.md)
-details the requirements of both `snap.manifest.json` and its relationship to `package.json`.
-:::
-
 You might need to modify some manifest fields manually.
 For example, if you change the location of the icon SVG file, you must update
 `source.location.npm.iconPath` to match.
@@ -90,30 +82,69 @@ You can also use the [Snaps CLI](../../reference/cli/subcommands.md) to update s
 For example, running [`yarn mm-snap build`](../../reference/cli/subcommands.md#b-build) or
 [`yarn mm-snap manifest --fix`](../../reference/cli/subcommands.md#m-manifest) updates `source.shasum`.
 
+:::caution important
+Some manifest fields must match the corresponding fields of the `/snap/package.json` file.
+
+When updating the `version` and `repository` fields, the Snap inherits the values from `package.json`
+and overwrites them in `snap.manifest.json`.
+We recommend updating `version` and `repository` in `package.json` first, then building the Snap project.
+
+The [Snaps publishing specification](https://github.com/MetaMask/SIPs/blob/main/SIPS/sip-9.md)
+details the requirements of both `snap.manifest.json` and its relationship to `package.json`.
+:::
+
+:::note
+Currently, Snaps can only be
+[published to the official npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+In the future, developers will be able to distribute Snaps in different ways, and the manifest will
+expand to support different publishing solutions.
+:::
+
 ## Configuration file
 
-The Snap configuration file, `snap.config.ts`, should be placed in the project root directory.
-You can override the default values of the [Snaps CLI options](../../reference/cli/options.md) by specifying
-them in the `config` object of the configuration file.
+The Snap configuration file, `snap.config.js` or `snap.config.ts`, must be placed in the project
+root directory.
+You can override the default values of the
+[Snaps configuration options](../../reference/cli/options.md) by specifying them in the
+configuration file.
 For example:
 
-```ts
-import { resolve } from 'path';
-import type { SnapConfig } from '@metamask/snaps-cli';
+<Tabs>
+<TabItem value="JavaScript">
+
+```javascript title="snap.config.js"
+module.exports = {
+  input: "src/index.js",
+  output: {
+    path: "dist",
+  },
+  server: {
+    port: 9000,
+  },
+}
+```
+
+</TabItem>
+<TabItem value="TypeScript">
+
+```typescript title="snap.config.ts"
+import type { SnapConfig } from "@metamask/snaps-cli"
 
 const config: SnapConfig = {
-  bundler: 'webpack',
-  input: resolve(__dirname, 'src/index.ts'),
+  input: "src/index.js",
+  output: {
+    path: "dist",
+  },
   server: {
-    port: 8080,
+    port: 9000,
   },
-  polyfills: {
-    buffer: true,
-  },
-};
+}
 
-export default config;
+export default config
 ```
+
+</TabItem>
+</Tabs>
 
 :::note
 You should not publish the configuration file to npm, since it's only used for development and
