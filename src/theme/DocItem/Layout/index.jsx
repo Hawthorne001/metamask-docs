@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { useWindowSize } from "@docusaurus/theme-common";
-import { useDoc } from "@docusaurus/theme-common/internal";
+import { useDoc } from '@docusaurus/plugin-content-docs/client';
 import DocItemPaginator from "@theme/DocItem/Paginator";
 import DocVersionBanner from "@theme/DocVersionBanner";
 import DocItemFooter from "@theme/DocItem/Footer";
@@ -43,7 +43,7 @@ export default function DocItemLayout({ children }) {
             <DocItemTags />
             {docTOC.mobile}
             <DocItemContent>{children}</DocItemContent>
-            <GetFeedback />
+            {/* <GetFeedback /> */}
             <DocItemFooter />
           </article>
           <DocItemPaginator />

@@ -1,14 +1,16 @@
-import React from "react";
-import styles from "./YoutubeEmbed.module.css";
+import React from 'react'
+import styles from './YoutubeEmbed.module.scss'
 
 interface YoutubeEmbedProps {
-  url: string;  
+  url: string
 }
 
-export default function YoutubeEmbed(props: YoutubeEmbedProps) {
+const YoutubeEmbed: React.FC<YoutubeEmbedProps> = ({ url }) => {
   return (
     <div className={styles.wrapper}>
-      <iframe src={props.url} allowFullScreen></iframe>
+      <iframe src={url} allowFullScreen></iframe>
     </div>
-  );
+  )
 }
+
+export default YoutubeEmbed
